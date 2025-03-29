@@ -22,7 +22,6 @@
     font-size: 24px;
   }
 
-
   small {
     font-size: 18px;
     color: var(--secondary-1);
@@ -48,7 +47,8 @@
     align-items: center;
     gap: 12px;
 
-    img {
+    img,
+    a {
       cursor: pointer;
       width: 28px;
       height: 28px;

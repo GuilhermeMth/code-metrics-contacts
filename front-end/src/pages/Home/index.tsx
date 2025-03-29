@@ -6,19 +6,27 @@ import { IContact } from "../../@types/Contact";
 import { Button, Input, Loader } from "../../components";
 import arrow from "../../assets/icons/arrow.svg";
 import { orderBy } from "../../services/ContactsService";
-import { useDebounceCallBack } from "../../hooks";
+import { useForm } from "react-hook-form";
+import { useDebounce } from "../../hooks";
+import { useNavigate } from "react-router";
 
 export default function Home() {
+  const navigate = useNavigate();
   const [contacts, setContacts] = useState<IContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState("");
   const [orderBy, setOrderBy] = useState<orderBy>("ASC");
+
+  const { register, watch } = useForm();
+
+  const search = watch("search");
+
+  const debouncedSearch = useDebounce(search);
 
   const loadContacts = useCallback(async () => {
     try {
       setIsLoading(true);
       const contacts = await ContactsService.getContacts({
-        name: search,
+        name: debouncedSearch,
         orderBy,
       });
       setContacts(contacts);
@@ -27,20 +35,30 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [search, orderBy]);
+  }, [debouncedSearch, orderBy]);
 
   useEffect(() => {
     loadContacts();
   }, [loadContacts]);
 
-  const handleChangeSearch = useDebounceCallBack(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setSearch(event.target.value);
+  const handleDeleteContact = useCallback(async (contact: IContact) => {
+    try {
+      setIsLoading(true);
+      await ContactsService.deleteContact(contact.id);
+      loadContacts();
+    } catch {
+      alert("Ocorreu um erro ao deletar um contato.");
+    } finally {
+      setIsLoading(false);
     }
-  );
+  }, []);
 
   function handleToggleOrderBy() {
     setOrderBy((orderBy) => (orderBy === "ASC" ? "DESC" : "ASC"));
+  }
+
+  function handleNavigateToCreateContact() {
+    navigate("/contacts/create");
   }
 
   return (
@@ -49,8 +67,9 @@ export default function Home() {
       <section className={styles.contactsList}>
         <header>
           <Input
+            name="search"
+            register={register}
             placeholder="Buscar contato..."
-            onChange={handleChangeSearch}
           />
           {search && (
             <p>
@@ -62,14 +81,20 @@ export default function Home() {
               <strong>Nome</strong>
               <img data-order-by={orderBy} src={arrow} alt="Ordenar" />
             </button>
-            <Button>Novo Contato</Button>
+            <Button onClick={handleNavigateToCreateContact}>
+              Novo Contato
+            </Button>
           </div>
         </header>
         {!contacts.length && (
           <p className={styles.emptyContacts}>Nenhum contato encontrado.</p>
         )}
         {contacts.map((contact) => (
-          <ContactCard key={contact.id} data={contact} />
+          <ContactCard
+            key={contact.id}
+            data={contact}
+            onDelete={handleDeleteContact}
+          />
         ))}
       </section>
     </>

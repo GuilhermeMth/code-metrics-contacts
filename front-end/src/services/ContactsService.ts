@@ -13,6 +13,29 @@ class ContactsService {
     const response = await api.get<IContact[]>("/contacts", { params });
     return response.data;
   }
+
+  async getContact(id: string) {
+    const response = await api.get<IContact>(`/contacts/${id}`);
+    return response.data;
+  }
+
+  async createContact(contact: Omit<IContact, "id" | "category_name">) {
+    const response = await api.post<void>("/contacts", contact);
+    return response.data;
+  }
+
+  async updateContact(
+    id: string,
+    contact: Omit<IContact, "id" | "category_name">
+  ) {
+    const response = await api.put<void>(`/contacts/${id}`, contact);
+    return response.data;
+  }
+
+  async deleteContact(id: string) {
+    const response = await api.delete<void>(`/contacts/${id}`);
+    return response.data;
+  }
 }
 
 export default new ContactsService();

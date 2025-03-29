@@ -22,6 +22,9 @@
   --secondary-11: #2e2e2e;
   --secondary-12: #121212;
   --secondary-13: #000000;
+
+  --error-1: #ff8989;
+  --error-2: #df6161;
 }
 
 * {
